@@ -283,13 +283,13 @@
 
         video.play();
         setTimeout(function() {
-            console.log("height => " + video.height + " " + video.videoHeight);
-            if (video.videoWidth <= 640) {
+            console.log("height => " + video.height + " " + video.videoHeight + " " + video.videoWidth);
+            if (video.videoHeight == 240 || video.videoHeight == 480) {
                 video.width = 300;
                 video.height = 220;
                 div.style.width = '300px';
             } else {
-                video.width = 380;
+                video.width = 386;
                 video.height = 220;
                 div.style.width = '300px';
             }
