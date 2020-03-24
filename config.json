@@ -1,0 +1,18 @@
+{
+  "socketURL": "https://58.229.105.141:8880/",
+  "dirPath": "",
+  "homePage": "",
+  "socketMessageEvent": "RTCMultiConnection-Message",
+  "socketCustomEvent": "RTCMultiConnection-Custom-Message",
+  "port": "8880",
+  "enableLogs": "false",
+  "autoRebootServerOnFailure": "false",
+  "isUseHTTPs": "ture",
+  "sslKey": "/jaek/node_project/certificate.key",
+  "sslCert": "/jaek/node_project/certificate.crt",
+  "sslCabundle": "",
+  "enableAdmin": "true",
+  "adminUserName": "username",
+  "adminPassword": "password"
+}
+

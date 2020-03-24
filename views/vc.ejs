@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <title>Nexmore Video Conference</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <style>
+       
+        .name {
+            text-align: center;
+        }
+
+        video {
+            position: relative;
+            left: 0;
+            top: 0;
+            opacity: 1;
+        }
+
+        .video-mask{
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin-right: 10px;
+        }
+
+        .pdiv{
+            float: left;
+        }
+
+        .out {
+            width: 100%;
+            text-align: center;
+        }
+
+        .in {
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="out">
+    <div class="in" id="videos-container" style="align-self: center;height:520px"></div>
+    <input type="hidden" id="roomName" value="<%=roomName%>" />
+    <input type="hidden" id="userName" value="<%=userName%>" />
+    <div>
+        <textarea id="chatArea" rows="4" cols="80" style="font-size: large" readonly></textarea><br>
+         <input type="text" id="chatInput" placeholder="메세지를 입력하세요." style="width: 640px"/>
+    </div>
+
+
+<!--    <input type="hidden" id="room-id" value="abcdef" autocorrect=off autocapitalize=off size=20>-->
+<!--    <div id="room-urls" style="text-align: center;display: none;background: #F1EDED;margin: 15px -10px;border: 1px solid rgb(189, 189, 189);border-left: 0;border-right: 0;"></div>-->
+</div>
+
+<script src="/rtcmulticonnection/dist/RTCMultiConnection.min.js"></script>
+<script src="/webrtc-adapter/out/adapter.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+
+<!--<script src="/node_projectnode_modules/recordrtc/RecordRTC.js"></script>-->
+
+<script src="/stylesheets/charisma-master/bower_components/jquery/jquery.min.js"></script>
+<script>
+
+    var connection = new RTCMultiConnection();
+
+    connection.socketURL = 'https://58.229.105.141:8880/';
+
+    connection.socketMessageEvent = 'video-conference';
+
+    connection.userid = document.getElementById('userName').value;
+
+    connection.session = {
+        audio: true,
+        video: true
+    };
+
+    connection.sdpConstraints.mandatory = {
+        OfferToReceiveAudio: true,
+        OfferToReceiveVideo: true
+    };
+
+    var bitrates = 512;
+    var resolutions = 'Ultra-HD';
+    var videoConstraints = {};
+    var isFirstLine = true;
+    var clientcnt = 0;
+
+    if (resolutions == 'HD') {
+        videoConstraints = {
+            width: {
+                ideal: 1280
+            },
+            height: {
+                ideal: 720
+            },
+            frameRate: 30
+        };
+    }
+
+    if (resolutions == 'Ultra-HD') {
+        videoConstraints = {
+            width: {
+                ideal: 1920
+            },
+            height: {
+                ideal: 1080
+            },
+            frameRate: 30
+        };
+    }
+
+    connection.mediaConstraints = {
+        video: videoConstraints,
+        audio: true
+    };
+
+    var CodecsHandler = connection.CodecsHandler;
+
+    connection.processSdp = function(sdp) {
+        var codecs = 'vp8';
+
+        if (codecs.length) {
+            sdp = CodecsHandler.preferCodec(sdp, codecs.toLowerCase());
+        }
+
+        if (resolutions == 'HD') {
+            sdp = CodecsHandler.setApplicationSpecificBandwidth(sdp, {
+                audio: 128,
+                video: bitrates,
+                screen: bitrates
+            });
+
+            sdp = CodecsHandler.setVideoBitrates(sdp, {
+                min: bitrates * 8 * 1024,
+                max: bitrates * 8 * 1024,
+            });
+        }
+
+        if (resolutions == 'Ultra-HD') {
+            sdp = CodecsHandler.setApplicationSpecificBandwidth(sdp, {
+                audio: 128,
+                video: bitrates,
+                screen: bitrates
+            });
+
+            sdp = CodecsHandler.setVideoBitrates(sdp, {
+                min: bitrates * 8 * 1024,
+                max: bitrates * 8 * 1024,
+            });
+        }
+
+        return sdp;
+    };
+
+    
+     connection.iceServers = [
+        {
+            'urls': [
+            'stun:stun.l.google.com:19302'
+            ]
+        },
+        {
+            'urls': 'turn:numb.viagenie.ca:3478',
+            'username': 'jaek81@gmail.com',
+            'credential': 'worudthd1124~'
+        }
+    ];
+
+
+    //connection.videosContainer = document.getElementById('videos-container');
+    connection.onstream = function(event) {
+        // var existing = document.getElementById(event.streamid);
+        // if(existing && existing.parentNode) {
+        //     existing.parentNode.removeChild(existing);
+        // }
+
+        connection.videosContainer = document.getElementById('videos-container');
+
+        event.mediaElement.removeAttribute('src');
+        event.mediaElement.removeAttribute('srcObject');
+        event.mediaElement.muted = true;
+        event.mediaElement.volume = 0;
+
+        var video = document.createElement('video');
+        var pdiv = document.createElement('div');
+        var div = document.createElement('div');
+        var input = document.createElement('input');
+        var inputdiv = document.createElement('div');
+        var br = document.createElement('br');
+
+        try {
+            video.setAttributeNode(document.createAttribute('autoplay'));
+            video.setAttributeNode(document.createAttribute('playsinline'));
+        } catch (e) {
+            video.setAttribute('autoplay', true);
+            video.setAttribute('playsinline', true);
+        }
+
+        if(event.type === 'local') {
+            video.volume = 0;
+            try {
+                video.setAttributeNode(document.createAttribute('muted'));
+            } catch (e) {
+                video.setAttribute('muted', true);
+            }
+        }
+        video.srcObject = event.stream;
+
+        div.className = 'video-mask';
+	input.className = 'name';
+        input.type = 'text'
+        input.value = event.userid;
+        input.readOnly = true;
+        br.id = 'br';
+        inputdiv.appendChild(input);
+        div.appendChild(video);
+        pdiv.appendChild(div);
+        pdiv.appendChild(inputdiv);
+        pdiv.className = 'pdiv';
+
+        // var mediaElement = getHTMLMediaElement(video, {
+        //     title: event.userid,
+        //     buttons: ['full-screen'],
+        //     width: width,
+        //     showOnMouseEnter: false
+        // });
+
+        video.id = event.streamid;
+
+        //mediaElement.id = event.streamid;
+
+        localStorage.setItem(connection.socketMessageEvent, connection.sessionid);
+
+        if(event.type === 'local') {
+
+            connection.socket.on('infores', function (message) {
+                var data = JSON.parse(message);
+                var state = data.state;
+                if (state == "full") {
+                    alert("해당 방에 인원이 찼습니다.");
+                    location.replace("https://58.229.105.141:3000");
+                }
+            });
+
+
+	    connection.socket.on('chat', function (message) {
+                var msg = JSON.parse(message);
+                var room = document.getElementById('roomName').value;
+                if (msg.room == room) {
+                    $('#chatArea').append(msg.user + ": " + msg.msg + "\n");
+                    $('#chatArea').scrollTop($('#chatArea')[0].scrollHeight);
+                }
+            });
+
+            connection.socket.on('chat-enter', function (message) {
+                var msg = JSON.parse(message);
+                var room = document.getElementById('roomName').value;
+                if (msg.room == room) {
+                    $('#chatArea').append(msg.user + "(이)가 입장하였습니다.\n");
+                    $('#chatArea').scrollTop($('#chatArea')[0].scrollHeight);
+                }
+            });
+
+            connection.socket.on('chat-out', function (message) {
+                var msg = JSON.parse(message);
+                var room = document.getElementById('roomName').value;
+                if (msg.room == room) {
+                    $('#chatArea').append(msg.user + "(이)가 퇴장하였습니다.\n");
+                    $('#chatArea').scrollTop($('#chatArea')[0].scrollHeight);
+                }
+            });
+
+
+            connection.socket.on('disconnect', function() {
+                if(!connection.getAllParticipants().length) {
+                    location.reload();
+                }
+            });
+        }
+
+        video.play();
+        setTimeout(function() {
+            console.log("height => " + video.height + " " + video.videoHeight);
+            if (video.videoWidth <= 640) {
+                video.width = 300;
+                video.height = 220;
+                div.style.width = '300px';
+            } else {
+                video.width = 380;
+                video.height = 220;
+                div.style.width = '300px';
+            }
+
+	    clientcnt++;
+
+            connection.videosContainer.appendChild(pdiv);
+            var width = parseInt(connection.videosContainer.clientWidth);
+            
+            if (clientcnt == 3 && isFirstLine) {
+                isFirstLine = false;
+                connection.videosContainer.appendChild(br);
+            }
+        }, 2000);
+    };
+
+    connection.onstreamended = function(event) {
+        clientcnt--;
+	// var room = document.getElementById('roomName').value;
+        // //var user = document.getElementById('userName').value;
+        // connection.socket.emit("deletedb", JSON.stringify({"room" : room, "user" : event.userid}))
+        var mediaElement = document.getElementById(event.streamid);
+        var br = document.getElementById('br');
+        if (mediaElement) {
+            mediaElement.parentNode.parentNode.parentNode.removeChild(mediaElement.parentNode.parentNode);
+            connection.videosContainer = document.getElementById('videos-container');
+            var width = parseInt(connection.videosContainer.clientWidth);
+            if (clientcnt < 3 && br) {
+                connection.videosContainer.removeChild(br);
+                isFirstLine = true;
+            }
+        }
+    };
+
+    connection.onMediaError = function(e) {
+        if (e.message === 'Concurrent mic process limit.') {
+            if (DetectRTC.audioInputDevices.length <= 1) {
+                alert('외부 마이크를 선택해주세요.');
+                return;
+            }
+
+            var secondaryMic = DetectRTC.audioInputDevices[1].deviceId;
+            connection.mediaConstraints.audio = {
+                deviceId: secondaryMic
+            };
+
+            connection.join(connection.sessionid);
+        }
+    };
+
+    (function() {
+	var input = document.getElementById("chatInput");
+        input.onkeyup = function(e){
+            if(e.keyCode == 13){
+                console.log("chat send~~");
+                chatSend();
+		document.getElementById('chatInput').value = '';
+            }
+        }
+
+
+        // var params = {},
+        //     r = /([^&=]+)=?([^&]*)/g;
+        //
+        // function d(s) {
+        //     return decodeURIComponent(s.replace(/\+/g, ' '));
+        // }
+        // var match, search = window.location.search;
+        // while (match = r.exec(search.substring(1)))
+        //     params[d(match[1])] = d(match[2]);
+        var params = {};
+        params.roomid = document.getElementById('roomName').value;
+        if (params.roomid == "") {
+            alert("잘못된 접근입니다.");
+            return;
+        }
+        params.user = document.getElementById('userName').value;
+        window.params = params;
+
+        connection.openOrJoin(document.getElementById('roomName').value, function(isRoomExist, roomid, error) {
+            if(error) {
+                alert(error);
+            }
+
+            var room = document.getElementById('roomName').value;
+            var user = document.getElementById('userName').value;
+            console.log("open room !! " + room + " " + user);
+            connection.socket.emit("info", JSON.stringify({"room" : room, "user" : user}))
+        });
+    })();
+
+</script>
+<script>
+
+    function chatSend() {
+        var input = document.getElementById('chatInput').value;
+        var room = document.getElementById('roomName').value;
+        var user = document.getElementById('userName').value;
+        if (input.length > 0) {
+            connection.socket.emit("chat", JSON.stringify({"room" : room, "user" : user, "msg" : input}))
+        }
+    }
+</script>
+</body>
+</html>
+
