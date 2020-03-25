@@ -268,23 +268,34 @@
                 var msg = JSON.parse(message);
                 var room = document.getElementById('roomName').value;
                 if (msg.room == room) {
+                    clientcnt--;
+
                     $('#chatArea').append(msg.user + "(이)가 퇴장하였습니다.\n");
                     $('#chatArea').scrollTop($('#chatArea')[0].scrollHeight);
+
+                    var br = document.getElementById('br');
+                    if (br && clientcnt <= 3) {
+                        connection.videosContainer.removeChild(br);
+                        isFirstLine = true;
+                    }
                 }
             });
 
 
             connection.socket.on('disconnect', function() {
-                if(!connection.getAllParticipants().length) {
-                    location.reload();
-                }
+                alert('네트워크 문제로 연결이 끊겼습니다.')
+                location.replace('https://songjaekyung.com/chat')
+                // if(!connection.getAllParticipants().length) {
+                //     location.reload();
+                // }
             });
         }
 
         video.play();
+
         setTimeout(function() {
             console.log("height => " + video.height + " " + video.videoHeight + " " + video.videoWidth);
-            if (video.videoHeight == 240 || video.videoHeight == 480) {
+            if (video.videoHeight == 0 || video.videoHeight == 240 || video.videoHeight == 480) {
                 video.width = 300;
                 video.height = 220;
                 div.style.width = '300px';
@@ -294,33 +305,25 @@
                 div.style.width = '300px';
             }
 
-	    clientcnt++;
-
-            connection.videosContainer.appendChild(pdiv);
-            var width = parseInt(connection.videosContainer.clientWidth);
-            
-            if (clientcnt == 3 && isFirstLine) {
+            if (clientcnt >= 3 && isFirstLine) {
                 isFirstLine = false;
                 connection.videosContainer.appendChild(br);
             }
+
+            clientcnt++;
+            connection.videosContainer.appendChild(pdiv);
+
         }, 2000);
     };
 
     connection.onstreamended = function(event) {
-        clientcnt--;
 	// var room = document.getElementById('roomName').value;
         // //var user = document.getElementById('userName').value;
         // connection.socket.emit("deletedb", JSON.stringify({"room" : room, "user" : event.userid}))
         var mediaElement = document.getElementById(event.streamid);
-        var br = document.getElementById('br');
         if (mediaElement) {
             mediaElement.parentNode.parentNode.parentNode.removeChild(mediaElement.parentNode.parentNode);
             connection.videosContainer = document.getElementById('videos-container');
-            var width = parseInt(connection.videosContainer.clientWidth);
-            if (clientcnt < 3 && br) {
-                connection.videosContainer.removeChild(br);
-                isFirstLine = true;
-            }
         }
     };
 
