@@ -284,7 +284,7 @@
 
             connection.socket.on('disconnect', function() {
                 alert('네트워크 문제로 연결이 끊겼습니다.')
-                location.replace('https://songjaekyung.com/chat')
+                location.replace('https://58.229.105.141:3000')
                 // if(!connection.getAllParticipants().length) {
                 //     location.reload();
                 // }
@@ -295,7 +295,7 @@
 
         setTimeout(function() {
             console.log("height => " + video.height + " " + video.videoHeight + " " + video.videoWidth);
-            
+
             if (video.videoHeight == 0 || video.videoHeight == 240 || video.videoHeight == 480) {
                 video.width = 300;
                 video.height = 220;
