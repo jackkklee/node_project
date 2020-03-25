@@ -240,7 +240,7 @@ soc.on('connection', function(socket) {
         var room = socket.d.room;
         var user = socket.d.user;
 
-	socket.broadcast.emit('chat-out', JSON.stringify({"room" : room, "user" : user}));
+        socket.broadcast.emit('chat-out', JSON.stringify({"room" : room, "user" : user}));
 
         var dbconn = mysql.createConnection(sqloption);
         dbconn.connect(function(err) {
