@@ -114,7 +114,7 @@
             sdp = CodecsHandler.preferCodec(sdp, codecs.toLowerCase());
         }
 
-        if (resolutions == 'HD') {
+        //if (resolutions == 'Ultra-HD') {
             sdp = CodecsHandler.setApplicationSpecificBandwidth(sdp, {
                 audio: 128,
                 video: bitrates,
@@ -125,20 +125,7 @@
                 min: bitrates * 8 * 1024,
                 max: bitrates * 8 * 1024,
             });
-        }
-
-        if (resolutions == 'Ultra-HD') {
-            sdp = CodecsHandler.setApplicationSpecificBandwidth(sdp, {
-                audio: 128,
-                video: bitrates,
-                screen: bitrates
-            });
-
-            sdp = CodecsHandler.setVideoBitrates(sdp, {
-                min: bitrates * 8 * 1024,
-                max: bitrates * 8 * 1024,
-            });
-        }
+        //}
 
         return sdp;
     };
