@@ -83,24 +83,12 @@
     };
 
     var bitrates = 512;
-    var resolutions = 'Ultra-HD';
+    //var resolutions = 'Ultra-HD';
     var videoConstraints = {};
     var isFirstLine = true;
     var clientcnt = 0;
 
-    if (resolutions == 'HD') {
-        videoConstraints = {
-            width: {
-                ideal: 1280
-            },
-            height: {
-                ideal: 720
-            },
-            frameRate: 30
-        };
-    }
-
-    if (resolutions == 'Ultra-HD') {
+    //if (resolutions == 'Ultra-HD') {
         videoConstraints = {
             width: {
                 ideal: 320
@@ -110,7 +98,7 @@
             },
             frameRate: 30
         };
-    }
+    //}
 
     connection.mediaConstraints = {
         video: videoConstraints,
